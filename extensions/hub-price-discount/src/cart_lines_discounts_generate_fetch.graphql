@@ -1,0 +1,11 @@
+query CartFetchInput {
+  cart {
+    lines {
+      id
+      quantity
+      sku: attribute(key: "_sku") {
+        value
+      }
+    }
+  }
+}
