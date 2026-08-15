@@ -13,6 +13,10 @@ npm run setup
 npm run dev
 ```
 
+`DATABASE_URL` must point to the PostgreSQL database used by the deployed app.
+The setup command uses `prisma db push` for the first deployment; replace it
+with reviewed migrations before production schema changes.
+
 Set `HUB_API_TOKEN` to a long random value. Import from another server with:
 
 ```bash
