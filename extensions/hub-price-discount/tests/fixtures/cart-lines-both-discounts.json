@@ -7,48 +7,49 @@
         "lines": [
           {
             "id": "gid://shopify/CartLine/0",
+            "quantity": 2,
+            "sku": {
+              "value": "G18500-BLACK-3XL"
+            },
             "cost": {
               "subtotalAmount": {
-                "amount": "6.0"
+                "amount": "40.0"
+              }
+            }
+          },
+          {
+            "id": "gid://shopify/CartLine/1",
+            "quantity": 1,
+            "sku": {
+              "value": "G5000-BLACK-L"
+            },
+            "cost": {
+              "subtotalAmount": {
+                "amount": "15.95"
               }
             }
           }
         ]
       },
       "discount": {
-        "discountClasses": ["PRODUCT", "ORDER", "SHIPPING"]
+        "discountClasses": ["PRODUCT"]
+      },
+      "fetchResult": {
+        "jsonBody": {
+          "items": [
+            { "sku": "G18500-BLACK-3XL", "price": 15.95 },
+            { "sku": "G5000-BLACK-L", "price": 15.95 }
+          ]
+        }
       }
     },
-    "inputBytes": 126,
     "output": {
       "operations": [
-        {
-          "orderDiscountsAdd": {
-            "candidates": [
-              {
-                "message": "10% OFF ORDER",
-                "targets": [
-                  {
-                    "orderSubtotal": {
-                      "excludedCartLineIds": []
-                    }
-                  }
-                ],
-                "value": {
-                  "percentage": {
-                    "value": 10.0
-                  }
-                }
-              }
-            ],
-            "selectionStrategy": "FIRST"
-          }
-        },
         {
           "productDiscountsAdd": {
             "candidates": [
               {
-                "message": "20% OFF PRODUCT",
+                "message": "Hub price: G18500-BLACK-3XL",
                 "targets": [
                   {
                     "cartLine": {
@@ -57,13 +58,14 @@
                   }
                 ],
                 "value": {
-                  "percentage": {
-                    "value": 20.0
+                  "fixedAmount": {
+                    "amount": "8.10",
+                    "appliesToEachItem": false
                   }
                 }
               }
             ],
-            "selectionStrategy": "FIRST"
+            "selectionStrategy": "ALL"
           }
         }
       ]

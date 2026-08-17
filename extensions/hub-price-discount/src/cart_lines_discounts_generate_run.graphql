@@ -16,4 +16,7 @@ query CartInput {
   discount {
     discountClasses
   }
+  fetchResult {
+    jsonBody
+  }
 }

@@ -7,6 +7,10 @@
         "lines": [
           {
             "id": "gid://shopify/CartLine/0",
+            "quantity": 1,
+            "sku": {
+              "value": "G18500-BLACK-3XL"
+            },
             "cost": {
               "subtotalAmount": {
                 "amount": "100.0"
@@ -17,33 +21,17 @@
       },
       "discount": {
         "discountClasses": ["ORDER"]
+      },
+      "fetchResult": {
+        "jsonBody": {
+          "items": [
+            { "sku": "G18500-BLACK-3XL", "price": 15.95 }
+          ]
+        }
       }
     },
     "output": {
-      "operations": [
-        {
-          "orderDiscountsAdd": {
-            "candidates": [
-              {
-                "message": "10% OFF ORDER",
-                "targets": [
-                  {
-                    "orderSubtotal": {
-                      "excludedCartLineIds": []
-                    }
-                  }
-                ],
-                "value": {
-                  "percentage": {
-                    "value": 10.0
-                  }
-                }
-              }
-            ],
-            "selectionStrategy": "FIRST"
-          }
-        }
-      ]
+      "operations": []
     }
   }
 }

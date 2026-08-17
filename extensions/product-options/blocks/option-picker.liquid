@@ -1,0 +1,37 @@
+{%- comment -%}
+  Goodfolk Product Options — shared option picker (Style / Color / Size) for
+  products that don't have real variants. The chosen combination is sent to the
+  cart as line item properties (with `_sku`); the hub-price-discount function
+  sets the price from the catalog.
+{%- endcomment -%}
+
+{%- if product.has_only_default_variant -%}
+  <div
+    class="goodfolk-options"
+    data-goodfolk-options
+    data-catalog-url="{{ block.settings.catalog_url | escape }}"
+  >
+    <div class="goodfolk-options__loading">Đang tải bộ chọn sản phẩm…</div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Goodfolk Options",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "stylesheet": "option-picker.css",
+  "javascript": "option-picker.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "catalog_url",
+      "label": "Catalog API URL",
+      "info": "Endpoint trả dữ liệu catalog (garment/color/size/giá).",
+      "default": "https://goodfolk-hub-price.vercel.app/api/catalog"
+    }
+  ]
+}
+{% endschema %}

@@ -3,15 +3,19 @@
     "export": "cart-delivery-options-discounts-generate-run",
     "target": "cart.delivery-options.discounts.generate.run",
     "input": {
-      "discount": {
-        "discountClasses": ["SHIPPING"]
-      },
       "cart": {
         "deliveryGroups": [
           {
-            "id": "gid://shopify/CartDeliveryGroup/1"
+            "id": "gid://shopify/CartDeliveryGroup/1",
+            "deliveryOptions": [
+              { "handle": "standard-shipping", "title": "Standard" },
+              { "handle": "express-shipping", "title": "Express" }
+            ]
           }
         ]
+      },
+      "discount": {
+        "discountClasses": ["SHIPPING"]
       }
     },
     "output": {
@@ -23,8 +27,8 @@
                 "message": "FREE DELIVERY",
                 "targets": [
                   {
-                    "deliveryGroup": {
-                      "id": "gid://shopify/CartDeliveryGroup/1"
+                    "deliveryOption": {
+                      "handle": "standard-shipping"
                     }
                   }
                 ],

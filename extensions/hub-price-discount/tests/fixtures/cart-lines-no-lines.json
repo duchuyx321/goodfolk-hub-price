@@ -7,7 +7,12 @@
         "lines": []
       },
       "discount": {
-        "discountClasses": ["ORDER", "PRODUCT"]
+        "discountClasses": ["PRODUCT"]
+      },
+      "fetchResult": {
+        "jsonBody": {
+          "items": []
+        }
       }
     },
     "output": {

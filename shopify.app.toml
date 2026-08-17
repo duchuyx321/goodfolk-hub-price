@@ -1,13 +1,13 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "2f356c5a8cd21d73102c70a467004c42"
+client_id = "0c7f2c653493baf28ecb1005555fcc23"
 name = "goodfolk-hub-price"
 application_url = "https://goodfolk-hub-price.vercel.app"
 embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_products,read_discounts,write_discounts"
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
@@ -45,4 +45,7 @@ api_version = "2026-10"
   topics = [ "app/scopes_update" ]
 
 [auth]
-redirect_urls = [ "https://goodfolk-hub-price.vercel.app/api/auth" ]
+redirect_urls = [ "https://goodfolk-hub-price.vercel.app/auth/callback" ]
+
+[build]
+automatically_update_urls_on_dev = true

@@ -4,53 +4,67 @@ import {
 } from "../generated/api";
 
 /**
-  * @typedef {import("../generated/api").DeliveryInput} RunInput
-  * @typedef {import("../generated/api").CartDeliveryOptionsDiscountsGenerateRunResult} CartDeliveryOptionsDiscountsGenerateRunResult
-  */
+ * Nhận diện option ship thường (được miễn phí) theo handle hoặc title.
+ * Ship nhanh / express không khớp pattern này nên không bị discount.
+ */
+const STANDARD_SHIPPING_PATTERN = /standard|thường|thuong|tiêu chuẩn|tieu chuan|ground/i;
+
+function isStandardShippingOption(option) {
+  return STANDARD_SHIPPING_PATTERN.test(`${option.title || ""} ${option.handle || ""}`);
+}
 
 /**
-  * @param {RunInput} input
-  * @returns {CartDeliveryOptionsDiscountsGenerateRunResult}
-  */
+ * @typedef {import("../generated/api").DeliveryInput} RunInput
+ * @typedef {import("../generated/api").CartDeliveryOptionsDiscountsGenerateRunResult} CartDeliveryOptionsDiscountsGenerateRunResult
+ */
+
+/**
+ * @param {RunInput} input
+ * @returns {CartDeliveryOptionsDiscountsGenerateRunResult}
+ */
 
 export function cartDeliveryOptionsDiscountsGenerateRun(input) {
-  const firstDeliveryGroup = input.cart.deliveryGroups[0];
-  if (!firstDeliveryGroup) {
-    return {operations: []};
-  }
-
   const hasShippingDiscountClass = input.discount.discountClasses.includes(
     DiscountClass.Shipping,
   );
 
   if (!hasShippingDiscountClass) {
-    return {operations: []};
+    return { operations: [] };
   }
 
-  return {
-    operations: [
-      {
-        deliveryDiscountsAdd: {
-          candidates: [
-            {
-              message: "FREE DELIVERY",
-              targets: [
-                {
-                  deliveryGroup: {
-                    id: firstDeliveryGroup.id,
-                  },
-                },
-              ],
-              value: {
-                percentage: {
-                  value: 100,
-                },
-              },
-            },
-          ],
-          selectionStrategy: DeliveryDiscountSelectionStrategy.All,
+  const candidates = [];
+
+  for (const group of input.cart.deliveryGroups) {
+    const standardOption = group.deliveryOptions?.find(isStandardShippingOption);
+    if (!standardOption) continue;
+
+    candidates.push({
+      message: "FREE DELIVERY",
+      targets: [
+        {
+          deliveryOption: {
+            handle: standardOption.handle,
+          },
+        },
+      ],
+      value: {
+        percentage: {
+          value: 100,
         },
       },
-    ],
-  };
+    });
+  }
+
+  return candidates.length
+    ? {
+        operations: [
+          {
+            deliveryDiscountsAdd: {
+              candidates,
+              selectionStrategy: DeliveryDiscountSelectionStrategy.All,
+            },
+          },
+        ],
+      }
+    : { operations: [] };
 }

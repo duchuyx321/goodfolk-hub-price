@@ -6,7 +6,11 @@
       "cart": {
         "deliveryGroups": [
           {
-            "id": "gid://shopify/DeliveryGroup/0"
+            "id": "gid://shopify/DeliveryGroup/0",
+            "deliveryOptions": [
+              { "handle": "standard-shipping", "title": "Standard" },
+              { "handle": "express-shipping", "title": "Express" }
+            ]
           }
         ]
       },

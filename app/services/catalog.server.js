@@ -5,10 +5,12 @@ import { get, put } from "@vercel/blob";
 
 const catalogFile = process.env.CATALOG_FILE_PATH || join(process.cwd(), "data/catalog.json");
 const blobPath = process.env.CATALOG_BLOB_PATH || "goodfolk/catalog.json";
+// Blob is used only when real credentials are present. A bare VERCEL_OIDC_TOKEN
+// (e.g. from a local `.env.local` created by `vercel link`) is not enough —
+// without BLOB_STORE_ID it would make local dev try Vercel Blob and crash.
 const hasBlobStorage = Boolean(
   process.env.BLOB_READ_WRITE_TOKEN ||
-  process.env.BLOB_STORE_ID ||
-  process.env.VERCEL_OIDC_TOKEN,
+  (process.env.VERCEL_OIDC_TOKEN && process.env.BLOB_STORE_ID),
 );
 
 async function readStoredCatalog() {

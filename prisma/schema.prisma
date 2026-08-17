@@ -57,3 +57,17 @@ model CatalogEntry {
 
   @@index([versionId])
 }
+
+// A reusable set of product options (name + values) that can be applied to
+// multiple products at once. Each option value may carry a price delta (added
+// to the product's base price) and a skuKey used when building variant SKUs.
+// options is a JSON array of:
+//   [{ name: string, values: [{ value: string, skuKey?: string, priceDelta?: number }] }]
+model VariantTemplate {
+  id         String   @id @default(cuid())
+  name       String
+  skuPattern String   @default("{sku}-{option1}-{option2}")
+  options    Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
