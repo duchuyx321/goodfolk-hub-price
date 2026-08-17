@@ -2,7 +2,7 @@
 
 client_id = "2f356c5a8cd21d73102c70a467004c42"
 name = "goodfolk-hub-price"
-application_url = "https://shopify.dev/apps/default-app-home"
+application_url = "https://goodfolk-hub-price.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -45,4 +45,4 @@ api_version = "2026-10"
   topics = [ "app/scopes_update" ]
 
 [auth]
-redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+redirect_urls = [ "https://goodfolk-hub-price.vercel.app/api/auth" ]

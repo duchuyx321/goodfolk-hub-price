@@ -1,6 +1,6 @@
 import { HttpRequestMethod } from "../generated/api";
 
-const PRICE_API_URL = "https://replace-with-your-hub-domain.example/api/price";
+const PRICE_API_URL = "https://goodfolk-hub-price.vercel.app/api/price";
 
 export function cartLinesDiscountsGenerateFetch(input) {
   const items = input.cart.lines
@@ -16,7 +16,6 @@ export function cartLinesDiscountsGenerateFetch(input) {
       url: PRICE_API_URL,
       headers: [
         { name: "Content-Type", value: "application/json" },
-        { name: "Authorization", value: "Bearer replace-with-function-secret" },
       ],
       jsonBody: { items },
       policy: { readTimeoutMs: 1500 },

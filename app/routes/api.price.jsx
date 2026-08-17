@@ -1,11 +1,20 @@
-import { authorized, findPrice } from "../services/catalog.server";
+import { authorized, authorizedShopifyFunctionRequest, findPrice } from "../services/catalog.server";
 
 export const action = async ({ request }) => {
-  if (request.method !== "POST" || !authorized(request)) {
+  if (request.method !== "POST") {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => null);
+  const rawBody = await request.text();
+  const isAuthorized = authorized(request) || authorizedShopifyFunctionRequest(request, rawBody);
+  if (!isAuthorized) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  let body;
+  try {
+    body = JSON.parse(rawBody || "null");
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const skus = Array.isArray(body?.items)
     ? body.items.map((item) => item?.sku).filter(Boolean)
     : [body?.sku].filter(Boolean);

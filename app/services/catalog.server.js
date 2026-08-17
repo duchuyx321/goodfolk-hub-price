@@ -141,3 +141,44 @@ export function authorized(request) {
   if (!actual || actual.length !== expected.length) return false;
   return crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
 }
+
+const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
+
+function decodeJwtPart(value) {
+  return JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+}
+
+export function authorizedShopifyFunctionRequest(request, body) {
+  const token = request.headers.get("x-shopify-request-jwt");
+  const requestId = request.headers.get("x-shopify-request-id");
+  const secret = process.env.SHOPIFY_API_SECRET;
+  if (!token || !requestId || !secret) return false;
+
+  try {
+    const [encodedHeader, encodedPayload, encodedSignature] = token.split(".");
+    if (!encodedHeader || !encodedPayload || !encodedSignature) return false;
+    const header = decodeJwtPart(encodedHeader);
+    const payload = decodeJwtPart(encodedPayload);
+    if (header.alg !== "HS256" || payload.method !== request.method) return false;
+    if (payload.exp && Date.now() / 1000 >= payload.exp) return false;
+    if (payload.x_shopify_request_id !== requestId) return false;
+    if (payload.url_sha256 !== sha256(request.url)) return false;
+    if (payload.body_sha256 !== sha256(body)) return false;
+
+    const explicitHeaders = ["content-type"];
+    const canonicalHeaders = explicitHeaders
+      .map((name) => `${name}:${request.headers.get(name) || ""}`)
+      .sort()
+      .join(",");
+    if (payload.headers_sha256 !== sha256(canonicalHeaders)) return false;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(`${encodedHeader}.${encodedPayload}`)
+      .digest();
+    const actualSignature = Buffer.from(encodedSignature, "base64url");
+    return actualSignature.length === expectedSignature.length && crypto.timingSafeEqual(actualSignature, expectedSignature);
+  } catch {
+    return false;
+  }
+}
