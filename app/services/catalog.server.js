@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { head, put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 
 const catalogFile = process.env.CATALOG_FILE_PATH || join(process.cwd(), "data/catalog.json");
 const blobPath = process.env.CATALOG_BLOB_PATH || "goodfolk/catalog.json";
@@ -9,10 +9,9 @@ const blobPath = process.env.CATALOG_BLOB_PATH || "goodfolk/catalog.json";
 async function readStoredCatalog() {
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
-      const blob = await head(blobPath);
-      const response = await fetch(blob.url, { cache: "no-store" });
-      if (!response.ok) throw new Error(`Catalog blob returned HTTP ${response.status}`);
-      return response.json();
+      const blob = await get(blobPath, { access: "private", useCache: false });
+      if (!blob) return null;
+      return new Response(blob.stream).json();
     } catch (error) {
       if (error?.name === "BlobNotFoundError") return null;
       throw error;
