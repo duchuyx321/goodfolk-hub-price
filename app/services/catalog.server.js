@@ -5,9 +5,14 @@ import { get, put } from "@vercel/blob";
 
 const catalogFile = process.env.CATALOG_FILE_PATH || join(process.cwd(), "data/catalog.json");
 const blobPath = process.env.CATALOG_BLOB_PATH || "goodfolk/catalog.json";
+const hasBlobStorage = Boolean(
+  process.env.BLOB_READ_WRITE_TOKEN ||
+  process.env.BLOB_STORE_ID ||
+  process.env.VERCEL_OIDC_TOKEN,
+);
 
 async function readStoredCatalog() {
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (hasBlobStorage) {
     try {
       const blob = await get(blobPath, { access: "private", useCache: false });
       if (!blob) return null;
@@ -28,7 +33,7 @@ async function readStoredCatalog() {
 
 async function writeStoredCatalog(catalog) {
   const payload = JSON.stringify(catalog);
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (hasBlobStorage) {
     await put(blobPath, payload, {
       access: "private",
       addRandomSuffix: false,
