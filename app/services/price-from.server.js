@@ -78,6 +78,14 @@ mutation MetafieldsSet($metafields: [MetafieldInput!]!) {
   }
 }`;
 
+const METAFIELD_DELETE_MUTATION = `#graphql
+mutation MetafieldsDelete($ownerId: ID!, $namespace: String!, $key: String!) {
+  metafieldsDelete(metafields: [{ ownerId: $ownerId, namespace: $namespace, key: $key }]) {
+    deletedMetafields { id }
+    userErrors { field message }
+  }
+}`;
+
 async function fetchAllProducts(admin) {
   const products = [];
   let after = null;
@@ -97,23 +105,41 @@ async function fetchAllProducts(admin) {
 }
 
 async function writeMetafield(admin, productId, value) {
-  const response = await admin.graphql(METAFIELD_SET_MUTATION, {
-    variables: {
-      metafields: [
-        {
-          ownerId: productId,
-          namespace: METAFIELD_NAMESPACE,
-          key: METAFIELD_KEY,
-          type: "number_decimal",
-          value: String(value),
-        },
-      ],
-    },
-  });
-  const { data } = await response.json();
-  const userErrors = data?.metafieldsSet?.userErrors || [];
+  const setMetafield = async () => {
+    const response = await admin.graphql(METAFIELD_SET_MUTATION, {
+      variables: {
+        metafields: [
+          {
+            ownerId: productId,
+            namespace: METAFIELD_NAMESPACE,
+            key: METAFIELD_KEY,
+            // Text type: giá trị metafield là major units (vd "36.95"), còn
+            // filter |money chia cho 100 → phải đọc dạng text rồi times: 100
+            // trong theme (xem dawn/snippets/product-grid-item.liquid).
+            type: "single_line_text_field",
+            value: String(value),
+          },
+        ],
+      },
+    });
+    const { data } = await response.json();
+    return data?.metafieldsSet?.userErrors || [];
+  };
+
+  const userErrors = await setMetafield();
   if (userErrors.length) {
-    throw new Error(userErrors.map((error) => error.message).join("; "));
+    // Type cũ (number_decimal) không cho đổi trực tiếp → xoá rồi ghi lại.
+    await admin.graphql(METAFIELD_DELETE_MUTATION, {
+      variables: {
+        ownerId: productId,
+        namespace: METAFIELD_NAMESPACE,
+        key: METAFIELD_KEY,
+      },
+    });
+    const retryErrors = await setMetafield();
+    if (retryErrors.length) {
+      throw new Error(retryErrors.map((error) => error.message).join("; "));
+    }
   }
 }
 
