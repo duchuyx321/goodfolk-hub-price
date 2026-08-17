@@ -63,15 +63,17 @@ query Products($first: Int!, $after: String) {
       id
       legacyResourceId
       variantsCount { count }
-      priceRange { minVariantPrice { amount } }
+      variants(first: 1) {
+        nodes { price }
+      }
     }
   }
 }`;
 
-const PRODUCT_UPDATE_MUTATION = `#graphql
-mutation ProductUpdate($productId: ID!, $metafields: [MetafieldInput!]!) {
-  productUpdate(productId: $productId, metafields: $metafields) {
-    product { id }
+const METAFIELD_SET_MUTATION = `#graphql
+mutation MetafieldsSet($metafields: [MetafieldInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields { id }
     userErrors { field message }
   }
 }`;
@@ -95,11 +97,11 @@ async function fetchAllProducts(admin) {
 }
 
 async function writeMetafield(admin, productId, value) {
-  const response = await admin.graphql(PRODUCT_UPDATE_MUTATION, {
+  const response = await admin.graphql(METAFIELD_SET_MUTATION, {
     variables: {
-      productId,
       metafields: [
         {
+          ownerId: productId,
           namespace: METAFIELD_NAMESPACE,
           key: METAFIELD_KEY,
           type: "number_decimal",
@@ -109,15 +111,15 @@ async function writeMetafield(admin, productId, value) {
     },
   });
   const { data } = await response.json();
-  const userErrors = data?.productUpdate?.userErrors || [];
+  const userErrors = data?.metafieldsSet?.userErrors || [];
   if (userErrors.length) {
     throw new Error(userErrors.map((error) => error.message).join("; "));
   }
 }
 
 // Đồng bộ "From $X" cho mọi product: từ giá product (giá max) lookup ra giá min
-// theo catalog rồi ghi metafield goodfolk.price_from. Giá không khớp mức nào → bỏ qua
-// (theme fallback về product.price_min).
+// theo catalog rồi ghi metafield goodfolk.price_from. Product 1 variant (chế độ
+// discount) luôn được ghi — giá không khớp mức nào thì ghi chính giá product.
 export async function syncPriceFromMetafields(admin) {
   const catalog = await currentCatalog();
   if (!catalog) throw new Error("Chưa có catalog — publish option.json trước.");
@@ -136,12 +138,12 @@ export async function syncPriceFromMetafields(admin) {
       skipped.push({ id: product.id, reason: "product có nhiều variant (giá native)" });
       continue;
     }
-    const priceCents = Math.round(Number(product.priceRange?.minVariantPrice?.amount) * 100);
-    const fromCents = fromPriceForPrice(lookup, priceCents);
-    if (fromCents === null) {
-      skipped.push({ id: product.id, reason: `giá ${(priceCents / 100).toFixed(2)} không khớp mức nào` });
+    const priceCents = Math.round(Number(product.variants?.nodes?.[0]?.price) * 100);
+    if (!Number.isFinite(priceCents) || priceCents <= 0) {
+      skipped.push({ id: product.id, reason: "product không có giá hợp lệ" });
       continue;
     }
+    const fromCents = fromPriceForPrice(lookup, priceCents) ?? priceCents;
     plan.push({ id: product.id, from: fromCents / 100 });
   }
 
