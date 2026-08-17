@@ -1,0 +1,39 @@
+{
+  "payload": {
+    "export": "cart-transform-run",
+    "target": "cart.transform.run",
+    "input": {
+      "cart": {
+        "lines": [
+          {
+            "id": "gid://shopify/CartLine/0",
+            "cost": {
+              "amountPerQuantity": {
+                "amount": "47.95"
+              }
+            },
+            "priceAttribute": {
+              "value": "1.00"
+            }
+          }
+        ]
+      }
+    },
+    "output": {
+      "operations": [
+        {
+          "lineUpdate": {
+            "cartLineId": "gid://shopify/CartLine/0",
+            "price": {
+              "adjustment": {
+                "fixedPricePerUnit": {
+                  "amount": "11.99"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

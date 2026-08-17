@@ -5,7 +5,7 @@ import { authenticate } from "../shopify.server";
 import {
   listTemplates,
   listEligibleProducts,
-  applyTemplate,
+  applyGarments,
   shopCurrency,
 } from "../services/variant-template.server";
 
@@ -27,18 +27,28 @@ export const loader = async ({ request }) => {
 export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
-  const templateId = String(form.get("templateId") || "");
+  const templateIds = form.getAll("templateIds").map(String).filter(Boolean);
   const productIds = form.getAll("productIds").map(String).filter(Boolean);
 
-  if (!templateId) return { ok: false, error: "Hãy chọn một template." };
+  if (!templateIds.length) return { ok: false, error: "Hãy chọn ít nhất một template." };
   if (!productIds.length) return { ok: false, error: "Hãy chọn ít nhất một sản phẩm." };
 
-  try {
-    const result = await applyTemplate(admin, templateId, productIds);
-    return { ok: true, result };
-  } catch (error) {
-    return { ok: false, error: error.message };
+  const applied = [];
+  const failed = [];
+  for (const productId of productIds) {
+    try {
+      const result = await applyGarments(admin, templateIds, productId);
+      applied.push({
+        productId,
+        title: productId,
+        garments: result.garments,
+        variantCount: result.variantCount,
+      });
+    } catch (error) {
+      failed.push({ productId, title: productId, error: error.message });
+    }
   }
+  return { ok: true, result: { applied, skipped: [], failed } };
 };
 
 function ApplyResult({ result }) {
@@ -50,7 +60,7 @@ function ApplyResult({ result }) {
       {applied.length > 0 && (
         <s-banner tone="success">
           Đã áp dụng cho {applied.length} sản phẩm:{" "}
-          {applied.map((p) => `${p.title} (${p.variantCount} variant)`).join("; ")}
+          {applied.map((p) => `${p.title} (${p.garments.join(" + ")} — ${p.variantCount} variant)`).join("; ")}
         </s-banner>
       )}
       {skipped.length > 0 && (
@@ -72,30 +82,44 @@ export default function ApplyTemplatePage({ loaderData }) {
   const actionResult = useActionData();
   const { templates, products, total, q, templateId, currency } = loaderData;
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
-    templateId || (templates.length ? templates[0].id : ""),
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState(
+    templateId ? [templateId] : [],
   );
+
+  const toggleTemplate = (id) =>
+    setSelectedTemplateIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
 
   return (
     <s-page heading="Áp dụng variant template">
-      <s-section heading="1. Chọn template">
+      <s-section heading="1. Chọn garment (Style) cho sản phẩm">
+        <s-paragraph>
+          Chọn một hoặc nhiều template (garment). Mỗi sản phẩm sẽ có picker
+          <b> Style → Color → Size</b> với variant thật theo giá catalog. Lưu ý Shopify giới hạn{" "}
+          <b>2048 variant/sản phẩm</b> — nên chọn ~2–4 garment để không vượt.
+        </s-paragraph>
         {templates.length === 0 ? (
           <s-paragraph>
             Chưa có template nào.{" "}
             <s-link href="/app/templates">Tạo template trước</s-link> rồi quay lại trang này.
           </s-paragraph>
         ) : (
-          <s-select
-            label="Template"
-            value={selectedTemplateId}
-            onChange={(e) => setSelectedTemplateId(e.currentTarget.value)}
-          >
+          <s-stack gap="small">
             {templates.map((template) => (
-              <s-option key={template.id} value={template.id}>
-                {template.name}
-              </s-option>
+              <s-checkbox
+                key={template.id}
+                name="templateIds"
+                value={template.id}
+                label={template.name}
+                checked={selectedTemplateIds.includes(template.id)}
+                onChange={() => toggleTemplate(template.id)}
+              />
             ))}
-          </s-select>
+            <s-text>
+              Đã chọn: {selectedTemplateIds.length} garment.
+            </s-text>
+          </s-stack>
         )}
       </s-section>
 
@@ -115,7 +139,9 @@ export default function ApplyTemplatePage({ loaderData }) {
         </Form>
 
         <Form method="post">
-          {!selectedTemplateId ? null : <input type="hidden" name="templateId" value={selectedTemplateId} />}
+          {selectedTemplateIds.map((id) => (
+            <input key={id} type="hidden" name="templateIds" value={id} />
+          ))}
           {products.length === 0 ? (
             <s-paragraph>
               {q ? "Không tìm thấy sản phẩm chưa có variant nào." : "Chưa có sản phẩm chưa có variant nào."}

@@ -11,6 +11,9 @@
             "sku": {
               "value": "G18500-BLACK-3XL"
             },
+            "price": {
+              "value": "15.95"
+            },
             "cost": {
               "subtotalAmount": {
                 "amount": "100.0"
@@ -21,13 +24,6 @@
       },
       "discount": {
         "discountClasses": ["ORDER"]
-      },
-      "fetchResult": {
-        "jsonBody": {
-          "items": [
-            { "sku": "G18500-BLACK-3XL", "price": 15.95 }
-          ]
-        }
       }
     },
     "output": {

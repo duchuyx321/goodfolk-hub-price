@@ -4,6 +4,10 @@ Central price catalog for Shopify stores. The app accepts `option.json` from the
 embedded Admin UI or a server-to-server API, then exposes a protected price API
 for the Shopify Function layer.
 
+## Docs
+
+- [docs/README.md](docs/README.md) — tài liệu duy nhất: kiến trúc, catalog format, API, discount function, picker, env, việc đang dở
+
 ## Local setup
 
 ```bash

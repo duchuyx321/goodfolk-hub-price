@@ -1,0 +1,4 @@
+{
+  "name": "hub-price-transform",
+  "description": "Sets the cart line price from the catalog price carried on the line (_price attribute)"
+}

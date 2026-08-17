@@ -68,6 +68,11 @@ model VariantTemplate {
   name       String
   skuPattern String   @default("{sku}-{option1}-{option2}")
   options    Json
+  // Giá gốc của garment trong catalog — variant được tạo = basePrice + Σ delta
+  // (đảm bảo giá variant khớp chính xác giá catalog, không phụ thuộc giá product).
+  basePrice  Float?
+  // Mã garment trong catalog (VD: G5000B) — dùng làm SKU gốc khi áp template.
+  garment    String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

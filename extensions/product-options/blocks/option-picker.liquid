@@ -1,11 +1,42 @@
 {%- comment -%}
-  Goodfolk Product Options — shared option picker (Style / Color / Size) for
-  products that don't have real variants. The chosen combination is sent to the
-  cart as line item properties (with `_sku`); the hub-price-discount function
-  sets the price from the catalog.
+  Goodfolk Product Options — picker thích ứng:
+
+  • Sản phẩm CÓ variant thật (tạo từ Variant Template): hiển thị theo variant,
+    add đúng variant id → giá native, checkout sạch.
+  • Sản phẩm KHÔNG variant: dùng bộ option chung từ app (catalog API), gửi
+    properties _sku/_price/Style/Color/Size → discount function hạ giá về đúng
+    giá catalog (chạy trên mọi gói, kể cả Basic).
 {%- endcomment -%}
 
-{%- if product.has_only_default_variant -%}
+{%- if product.variants.size > 1 -%}
+  {%- capture variants_json -%}
+    [
+      {%- for variant in product.variants -%}
+        {
+          "id": {{ variant.id }},
+          "sku": {{ variant.sku | json }},
+          "price": {{ variant.price | json }},
+          "available": {% if variant.available %}true{% else %}false{% endif %},
+          "options": [
+            {%- for value in variant.options -%}
+              {{ value | json }}{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  {%- endcapture -%}
+
+  <div
+    class="goodfolk-options"
+    data-goodfolk-options
+    data-variants="{{ variants_json | escape }}"
+    data-option-names="{{ product.options | map: 'name' | json | escape }}"
+    data-catalog-url="{{ block.settings.catalog_url | escape }}"
+  >
+    <div class="goodfolk-options__loading">Đang tải bộ chọn sản phẩm…</div>
+  </div>
+{%- else -%}
   <div
     class="goodfolk-options"
     data-goodfolk-options
@@ -29,7 +60,7 @@
       "type": "text",
       "id": "catalog_url",
       "label": "Catalog API URL",
-      "info": "Endpoint trả dữ liệu catalog (garment/color/size/giá).",
+      "info": "Nguồn metadata (ảnh garment, mã màu) cho sản phẩm không variant — để trống = mặc định app.",
       "default": "https://goodfolk-hub-price.vercel.app/api/catalog"
     }
   ]

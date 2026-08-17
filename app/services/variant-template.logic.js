@@ -16,6 +16,16 @@ export function normalizeTemplate(input) {
     throw new Error(`Shopify hỗ trợ tối đa ${MAX_OPTIONS} option cho một sản phẩm.`);
   }
 
+  let basePrice = null;
+  if (input?.basePrice !== undefined && input?.basePrice !== null && input?.basePrice !== "") {
+    basePrice = Math.round(Number(input.basePrice) * 100) / 100;
+    if (!Number.isFinite(basePrice) || basePrice < 0) {
+      throw new Error("Giá gốc (basePrice) của template không hợp lệ.");
+    }
+  }
+
+  const garment = input?.garment ? String(input.garment).trim() : null;
+
   const optionNames = new Set();
   const options = rawOptions.map((opt) => {
     const optName = String(opt?.name || "").trim();
@@ -55,7 +65,7 @@ export function normalizeTemplate(input) {
     throw new Error(`Template tạo ${comboCount} variant, vượt giới hạn ${MAX_VARIANTS} của Shopify.`);
   }
 
-  return { name, skuPattern, options };
+  return { name, skuPattern, basePrice, garment, options };
 }
 
 // Cartesian product of option values → per-variant { key, sku, price }.

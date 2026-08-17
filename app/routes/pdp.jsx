@@ -322,6 +322,7 @@ export default function PdpPage() {
               <input type="hidden" name="properties[Style]" value={garment.label} />
               <input type="hidden" name="properties[Color]" value={color.label} />
               <input type="hidden" name="properties[Size]" value={size} />
+              <input type="hidden" name="properties[_price]" value={price} />
             </form>
           )}
 
@@ -351,6 +352,7 @@ export default function PdpPage() {
                           Style: garment.label,
                           Color: color.label,
                           Size: size,
+                          _price: price,
                         },
                       },
                     ],

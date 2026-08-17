@@ -1,0 +1,15 @@
+query CartTransformInput {
+  cart {
+    lines {
+      id
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
+      priceAttribute: attribute(key: "_price") {
+        value
+      }
+    }
+  }
+}

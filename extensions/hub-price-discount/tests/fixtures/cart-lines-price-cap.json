@@ -7,31 +7,16 @@
         "lines": [
           {
             "id": "gid://shopify/CartLine/0",
-            "quantity": 2,
+            "quantity": 1,
             "sku": {
               "value": "G18500-BLACK-3XL"
             },
             "price": {
-              "value": "15.95"
+              "value": "1.00"
             },
             "cost": {
               "subtotalAmount": {
-                "amount": "40.0"
-              }
-            }
-          },
-          {
-            "id": "gid://shopify/CartLine/1",
-            "quantity": 1,
-            "sku": {
-              "value": "G5000-BLACK-L"
-            },
-            "price": {
-              "value": "15.95"
-            },
-            "cost": {
-              "subtotalAmount": {
-                "amount": "15.95"
+                "amount": "25.0"
               }
             }
           }
@@ -57,7 +42,7 @@
                 ],
                 "value": {
                   "fixedAmount": {
-                    "amount": "8.10",
+                    "amount": "18.75",
                     "appliesToEachItem": false
                   }
                 }

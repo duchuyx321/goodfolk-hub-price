@@ -6,6 +6,9 @@ query CartInput {
       sku: attribute(key: "_sku") {
         value
       }
+      price: attribute(key: "_price") {
+        value
+      }
       cost {
         subtotalAmount {
           amount
@@ -15,8 +18,5 @@ query CartInput {
   }
   discount {
     discountClasses
-  }
-  fetchResult {
-    jsonBody
   }
 }

@@ -10,12 +10,20 @@ import {
   */
 
 /**
+  * Prices each cart line from the catalog price carried on the line itself
+  * (`_price` property, set by the Goodfolk picker). No network access is used,
+  * so this works on any Shopify plan.
+  *
+  * `_price` is client-supplied, so it is treated as untrusted: the discount is
+  * capped at 75% of the line's own cost to bound any tampering. (75% covers
+  * the largest legitimate gap in the catalog: max $47.95 -> min $15.95 = 66.7%.)
+  *
   * @param {RunInput} input
   * @returns {CartLinesDiscountsGenerateRunResult}
   */
 
 export function cartLinesDiscountsGenerateRun(input) {
-  if (!input.cart.lines.length || !input.fetchResult?.jsonBody?.items) {
+  if (!input.cart.lines.length) {
     return {operations: []};
   }
 
@@ -27,24 +35,29 @@ export function cartLinesDiscountsGenerateRun(input) {
     return {operations: []};
   }
 
-  const prices = new Map(
-    input.fetchResult.jsonBody.items.map((item) => [item.sku, Number(item.price)]),
-  );
   const candidates = [];
 
   for (const line of input.cart.lines) {
     const sku = line.sku?.value;
-    const targetPrice = prices.get(sku);
+    const targetPrice = Number(line.price?.value);
     const currentSubtotal = Number(line.cost.subtotalAmount.amount);
+    if (!sku || !line.price?.value || !Number.isFinite(targetPrice) || targetPrice <= 0) {
+      continue;
+    }
+
     const discount = currentSubtotal - targetPrice * line.quantity;
-    if (!sku || !Number.isFinite(targetPrice) || discount <= 0) continue;
+    if (discount <= 0) continue;
+
+    // Guard: never discount more than 75% of the line's own cost.
+    const applied = Math.min(discount, currentSubtotal * 0.75);
+    if (applied <= 0) continue;
 
     candidates.push({
-      message: `Hub price: ${sku}`,
+      message: "Goodfolk price",
       targets: [{ cartLine: { id: line.id } }],
       value: {
         fixedAmount: {
-          amount: discount.toFixed(2),
+          amount: applied.toFixed(2),
           appliesToEachItem: false,
         },
       },
